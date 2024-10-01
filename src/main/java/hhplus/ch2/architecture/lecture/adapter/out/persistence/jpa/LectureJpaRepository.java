@@ -19,7 +19,7 @@ public interface LectureJpaRepository extends JpaRepository<LectureEntity, Long>
                 count(ul)
             )
             from LectureEntity l
-            left join UserLectureEntity ul on l.id = ul.lectureId
+            left join UserLectureEntity ul on l.id = ul.lecture.id
             group by l.id
             having count(ul) < :capacity
             """)
@@ -34,7 +34,7 @@ public interface LectureJpaRepository extends JpaRepository<LectureEntity, Long>
                 count(ul)
             )
             from LectureEntity l
-            left join UserLectureEntity ul on l.id = ul.lectureId
+            left join UserLectureEntity ul on l.id = ul.lecture.id
             where l.lectureDateTime between :startDateTime and :endDateTime
             group by l.id
             having count(ul) < :capacity
@@ -54,8 +54,8 @@ public interface LectureJpaRepository extends JpaRepository<LectureEntity, Long>
                 count(ul)
             )
             from LectureEntity l
-            join UserLectureEntity ul on l.id = ul.lectureId
-            where ul.userId = :userId
+            join UserLectureEntity ul on l.id = ul.lecture.id
+            where ul.user.id = :userId
             group by l.id
             """)
     List<LectureResponse> findAllByUserId(Long userId);

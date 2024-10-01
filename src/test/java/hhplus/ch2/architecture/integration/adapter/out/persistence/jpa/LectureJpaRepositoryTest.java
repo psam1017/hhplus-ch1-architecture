@@ -102,7 +102,7 @@ public class LectureJpaRepositoryTest extends DataJpaTestEnvironment {
         List<UserLectureEntity> userLectureEntities = new ArrayList<>();
         for (int i = 0; i < 30; i++) {
             UserEntity userEntity = userJpaRepository.save(UserEntity.empty());
-            UserLectureEntity userLectureEntity = buildUserLectureEntity(userEntity.getId(), fullLecture.getId());
+            UserLectureEntity userLectureEntity = buildUserLectureEntity(userEntity, fullLecture);
             userLectureEntities.add(userLectureEntity);
         }
         userLectureJpaRepository.saveAll(userLectureEntities);
@@ -131,7 +131,7 @@ public class LectureJpaRepositoryTest extends DataJpaTestEnvironment {
         sut.saveAll(List.of(myLecture, anotherLecture));
 
         UserEntity saveUserEntity = userJpaRepository.save(UserEntity.empty());
-        UserLectureEntity userLectureEntity = buildUserLectureEntity(saveUserEntity.getId(), myLecture.getId());
+        UserLectureEntity userLectureEntity = buildUserLectureEntity(saveUserEntity, myLecture);
         userLectureJpaRepository.save(userLectureEntity);
 
         // when
@@ -151,10 +151,10 @@ public class LectureJpaRepositoryTest extends DataJpaTestEnvironment {
                 .build();
     }
 
-    private UserLectureEntity buildUserLectureEntity(Long userId, Long lectureId) {
+    private UserLectureEntity buildUserLectureEntity(UserEntity user, LectureEntity lecture) {
         return UserLectureEntity.builder()
-                .userId(userId)
-                .lectureId(lectureId)
+                .user(user)
+                .lecture(lecture)
                 .createdDateTime(LocalDateTime.now())
                 .build();
     }

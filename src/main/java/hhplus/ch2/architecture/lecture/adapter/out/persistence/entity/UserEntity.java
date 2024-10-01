@@ -31,4 +31,10 @@ public class UserEntity {
                 .id(id)
                 .build();
     }
+
+    public static UserEntity fromDomain(User user) {
+        return UserEntity.builder()
+                .id(user.getId())
+                .build();
+    }
 }

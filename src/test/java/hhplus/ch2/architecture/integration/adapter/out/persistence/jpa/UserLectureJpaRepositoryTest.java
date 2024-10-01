@@ -34,14 +34,17 @@ public class UserLectureJpaRepositoryTest extends DataJpaTestEnvironment {
         LectureEntity buildLectureEntity = buildLectureEntity("강의 제목", "강사 이름", LocalDate.now().with(DayOfWeek.SATURDAY).atTime(10, 0));
         LectureEntity saveLectureEntity = lectureJpaRepository.save(buildLectureEntity);
         UserEntity saveUserEntity = userJpaRepository.save(UserEntity.empty());
-        UserLectureEntity userLectureEntity = buildUserLectureEntity(saveUserEntity.getId(), saveLectureEntity.getId());
+        UserLectureEntity userLectureEntity = buildUserLectureEntity(saveUserEntity, saveLectureEntity);
 
         // when
         UserLectureEntity saveUserLectureEntity = sut.save(userLectureEntity);
 
         // then
-        assertThat(saveUserLectureEntity.getUserId()).isEqualTo(userLectureEntity.getUserId());
-        assertThat(saveUserLectureEntity.getLectureId()).isEqualTo(userLectureEntity.getLectureId());
+        assertThat(saveUserLectureEntity.getUser().getId()).isEqualTo(userLectureEntity.getUser().getId());
+        assertThat(saveUserLectureEntity.getLecture().getId()).isEqualTo(userLectureEntity.getLecture().getId());
+        assertThat(saveUserLectureEntity.getLecture().getTitle()).isEqualTo(userLectureEntity.getLecture().getTitle());
+        assertThat(saveUserLectureEntity.getLecture().getInstructorName()).isEqualTo(userLectureEntity.getLecture().getInstructorName());
+        assertThat(saveUserLectureEntity.getLecture().getLectureDateTime()).isEqualTo(userLectureEntity.getLecture().getLectureDateTime());
         assertThat(saveUserLectureEntity.getCreatedDateTime()).isEqualTo(userLectureEntity.getCreatedDateTime());
     }
 
@@ -53,7 +56,7 @@ public class UserLectureJpaRepositoryTest extends DataJpaTestEnvironment {
         LectureEntity saveLectureEntity = lectureJpaRepository.save(buildLectureEntity);
         UserEntity saveUserEntity = userJpaRepository.save(UserEntity.empty());
 
-        UserLectureEntity userLectureEntity = buildUserLectureEntity(saveUserEntity.getId(), saveLectureEntity.getId());
+        UserLectureEntity userLectureEntity = buildUserLectureEntity(saveUserEntity, saveLectureEntity);
         sut.save(userLectureEntity);
 
         // when
@@ -71,10 +74,10 @@ public class UserLectureJpaRepositoryTest extends DataJpaTestEnvironment {
                 .build();
     }
 
-    private UserLectureEntity buildUserLectureEntity(Long userId, Long lectureId) {
+    private UserLectureEntity buildUserLectureEntity(UserEntity user, LectureEntity lecture) {
         return UserLectureEntity.builder()
-                .userId(userId)
-                .lectureId(lectureId)
+                .user(user)
+                .lecture(lecture)
                 .createdDateTime(LocalDateTime.now())
                 .build();
     }

@@ -38,8 +38,8 @@ public class Lecture {
             throw new RegisteredCountOverCapacityException(CAPACITY);
         }
         return UserLecture.builder()
-                .userId(user.getId())
-                .lectureId(this.getId())
+                .user(user)
+                .lecture(this)
                 .createdDateTime(LocalDateTime.now())
                 .build();
     }

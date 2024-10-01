@@ -17,7 +17,8 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class FindMyLecturesUseCaseTest extends SpringBootTestEnvironment {
 
@@ -45,7 +46,7 @@ public class FindMyLecturesUseCaseTest extends SpringBootTestEnvironment {
         LectureEntity anotherLecture = buildLectureEntity("강의2", "강사2", thisSaturday);
         lectureJpaRepository.saveAll(List.of(myLecture, anotherLecture));
 
-        UserLectureEntity userLectureEntity = buildUserLectureEntity(userEntity.getId(), myLecture.getId());
+        UserLectureEntity userLectureEntity = buildUserLectureEntity(userEntity, myLecture);
         userLectureJpaRepository.save(userLectureEntity);
 
         // when
@@ -65,10 +66,10 @@ public class FindMyLecturesUseCaseTest extends SpringBootTestEnvironment {
                 .build();
     }
 
-    private UserLectureEntity buildUserLectureEntity(Long userId, Long lectureId) {
+    private UserLectureEntity buildUserLectureEntity(UserEntity user, LectureEntity lecture) {
         return UserLectureEntity.builder()
-                .userId(userId)
-                .lectureId(lectureId)
+                .user(user)
+                .lecture(lecture)
                 .createdDateTime(LocalDateTime.now())
                 .build();
     }

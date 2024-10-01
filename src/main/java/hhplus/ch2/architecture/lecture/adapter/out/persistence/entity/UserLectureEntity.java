@@ -1,5 +1,7 @@
 package hhplus.ch2.architecture.lecture.adapter.out.persistence.entity;
 
+import hhplus.ch2.architecture.lecture.domain.Lecture;
+import hhplus.ch2.architecture.lecture.domain.User;
 import hhplus.ch2.architecture.lecture.domain.UserLecture;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -17,34 +19,36 @@ import java.time.LocalDateTime;
 public class UserLectureEntity {
 
     @Id
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private Long userId;
+    private UserEntity user;
 
     @Id
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lecture_id")
-    private Long lectureId;
+    private LectureEntity lecture;
 
     private LocalDateTime createdDateTime;
 
     @Builder
-    protected UserLectureEntity(Long userId, Long lectureId, LocalDateTime createdDateTime) {
-        this.userId = userId;
-        this.lectureId = lectureId;
+    protected UserLectureEntity(UserEntity user, LectureEntity lecture, LocalDateTime createdDateTime) {
+        this.user = user;
+        this.lecture = lecture;
         this.createdDateTime = createdDateTime;
     }
 
     public static UserLectureEntity fromDomain(UserLecture userLecture) {
         return UserLectureEntity.builder()
-                .userId(userLecture.getUserId())
-                .lectureId(userLecture.getLectureId())
+                .user(UserEntity.fromDomain(userLecture.getUser()))
+                .lecture(LectureEntity.fromDomain(userLecture.getLecture()))
                 .createdDateTime(userLecture.getCreatedDateTime())
                 .build();
     }
 
     public UserLecture toDomain() {
         return UserLecture.builder()
-                .userId(userId)
-                .lectureId(lectureId)
+                .user(user.toDomain())
+                .lecture(lecture.toDomain())
                 .createdDateTime(createdDateTime)
                 .build();
     }

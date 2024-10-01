@@ -38,4 +38,13 @@ public class LectureEntity {
                 .lectureDateTime(lectureDateTime)
                 .build();
     }
+
+    public static LectureEntity fromDomain(Lecture lecture) {
+        return LectureEntity.builder()
+                .id(lecture.getId())
+                .title(lecture.getTitle())
+                .instructorName(lecture.getInstructorName())
+                .lectureDateTime(lecture.getLectureDateTime())
+                .build();
+    }
 }

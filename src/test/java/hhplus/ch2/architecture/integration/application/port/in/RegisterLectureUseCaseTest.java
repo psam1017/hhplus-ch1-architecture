@@ -11,7 +11,6 @@ import hhplus.ch2.architecture.lecture.adapter.out.persistence.jpa.UserLectureJp
 import hhplus.ch2.architecture.lecture.application.RegisterLectureService;
 import hhplus.ch2.architecture.lecture.application.command.RegisterLectureCommand;
 import hhplus.ch2.architecture.lecture.application.response.LectureRegistrationResult;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -9,14 +9,14 @@ import java.time.LocalDateTime;
 public class UserLecture {
 
     // TODO: 2024-10-01 ManyToOne ?
-    private final Long userId;
-    private final Long lectureId;
+    private final User user;
+    private final Lecture lecture;
     private final LocalDateTime createdDateTime;
 
     @Builder
-    protected UserLecture(Long userId, Long lectureId, LocalDateTime createdDateTime) {
-        this.userId = userId;
-        this.lectureId = lectureId;
+    protected UserLecture(User user, Lecture lecture, LocalDateTime createdDateTime) {
+        this.user = user;
+        this.lecture = lecture;
         this.createdDateTime = createdDateTime;
     }
 }
