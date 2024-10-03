@@ -1,16 +1,19 @@
 package hhplus.ch2.architecture.lecture.adapter.out.persistence.jpa;
 
 import hhplus.ch2.architecture.lecture.adapter.out.persistence.entity.LectureItemInventoryEntity;
-import hhplus.ch2.architecture.lecture.domain.entity.LectureItemInventory;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
+import org.springframework.data.jpa.repository.*;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface LectureItemInventoryJpaRepository extends JpaRepository<LectureItemInventoryEntity, Long> {
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints({
+            @QueryHint(name = "javax.persistence.lock.timeout", value = "5000")
+    })
     @Query("""
             SELECT lii
             FROM LectureItemInventoryEntity lii
