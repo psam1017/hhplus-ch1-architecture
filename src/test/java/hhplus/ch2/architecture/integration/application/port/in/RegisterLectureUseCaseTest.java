@@ -5,6 +5,7 @@ import hhplus.ch2.architecture.lecture.adapter.out.persistence.jpa.*;
 import hhplus.ch2.architecture.lecture.application.RegisterLectureService;
 import hhplus.ch2.architecture.lecture.application.command.RegisterLectureCommand;
 import hhplus.ch2.architecture.lecture.application.response.LectureRegistrationResult;
+import hhplus.ch2.architecture.lecture.common.exception.AlreadyRegisteredLectureException;
 import hhplus.ch2.architecture.lecture.common.exception.LectureItemOutOfLeftSeatException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -103,10 +104,11 @@ public class RegisterLectureUseCaseTest {
      * 이 테스트를 단독으로 실행했을 때, gradle 과 관련한 이슈로 테스트는 성공하나, 빌드가 종료되지 않는 이슈가 발생할 수 있습니다(사용자 환경마다 다릅니다).
      * 만약 그런 경우에는 콘솔 창에 yes 를 입력하십시오.
      * 아니면, 속 편하게 다른 테스트랑 같이 실행하십시오. 그러면 빌드가 정상 종료됩니다.
+     * 지금 작성 중인 환경에서, registerLectureWhenOneUserRegisterFiveTimes 는 이러한 이슈가 발생하지 않으니 참고하십시오.
      */
     @DisplayName("동시에 동일한 특강에 대해 40명이 신청했을 때, 30명만 성공할 수 있다.")
     @Test
-    void registerLectureWhen40PeopleApply() throws InterruptedException {
+    void registerLectureWhen40PeopleRegister() throws InterruptedException {
         // given
         InstructorEntity instructorEntity = buildInstructorEntity("강사1");
         instructorJpaRepository.save(instructorEntity);
@@ -159,8 +161,68 @@ public class RegisterLectureUseCaseTest {
 
         long count = userLectureJpaRepository.count();
         assertThat(count).isEqualTo(30);
+    }
 
-        executorService.shutdown();
+    @DisplayName("동일한 유저 정보로 같은 특강을 5번 신청했을 때, 1번만 성공하는 것을 검증할 수 있다.")
+    @Test
+    void registerLectureWhenOneUserRegisterFiveTimes() throws InterruptedException {
+        // given
+        InstructorEntity instructorEntity = buildInstructorEntity("강사1");
+        instructorJpaRepository.save(instructorEntity);
+
+        LectureEntity lectureEntity = buildLectureEntity("강의1", instructorEntity);
+        lectureJpaRepository.save(lectureEntity);
+
+        LectureItemEntity lectureItemEntity = buildLectureItemEntity(lectureEntity, LocalDateTime.now(), 30L);
+        lectureItemJpaRepository.save(lectureItemEntity);
+
+        LectureItemInventoryEntity lectureItemInventoryEntity = buildLectureItemInventoryEntity(lectureItemEntity, 30L);
+        LectureItemInventoryEntity lectureItemInventory = lectureItemInventoryJpaRepository.save(lectureItemInventoryEntity);
+
+        UserEntity userEntity = userJpaRepository.save(buildUserEntity("사용자"));
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failCount = new AtomicInteger(0);
+
+        ExecutorService executorService = Executors.newFixedThreadPool(5);
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch endLatch = new CountDownLatch(5);
+
+        List<Runnable> tasks = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            tasks.add(() -> {
+                try {
+                    startLatch.await();
+                    sut.registerLecture(new RegisterLectureCommand(userEntity.getId(), lectureItemEntity.getId()));
+                    successCount.incrementAndGet();
+                } catch (AlreadyRegisteredLectureException e) {
+                    e.printStackTrace();
+                    failCount.incrementAndGet();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    endLatch.countDown();
+                }
+            });
+        }
+        tasks.forEach(executorService::submit);
+
+        // when
+        startLatch.countDown();
+        endLatch.await();
+
+        // then
+        assertThat(successCount.get()).isEqualTo(1);
+        assertThat(failCount.get()).isEqualTo(4);
+
+        LectureItemInventoryEntity updatedLectureItemInventoryEntity = lectureItemInventoryJpaRepository.findById(lectureItemInventory.getId()).orElseThrow();
+        assertThat(updatedLectureItemInventoryEntity.getLeftSeat()).isEqualTo(29);
+
+        boolean exists = userLectureJpaRepository.existsByUserIdAndLectureItemId(userEntity.getId(), lectureItemEntity.getId());
+        assertThat(exists).isTrue();
+
+        long count = userLectureJpaRepository.count();
+        assertThat(count).isEqualTo(1);
     }
 
     private InstructorEntity buildInstructorEntity(String name) {

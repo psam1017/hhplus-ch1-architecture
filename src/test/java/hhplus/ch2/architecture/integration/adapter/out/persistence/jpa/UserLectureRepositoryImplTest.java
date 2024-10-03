@@ -66,6 +66,39 @@ public class UserLectureRepositoryImplTest extends DataJpaTestEnvironment {
         assertThat(saveUserLectureEntity.getLectureItemEntity().getId()).isEqualTo(lectureItemEntity.getId());
     }
 
+    @DisplayName("사용자가 강의를 이미 신청했는지 여부를 알 수 있다.")
+    @Test
+    void existsByUserIdAndLectureItemId() {
+        // given
+        InstructorEntity instructorEntity = buildInstructorEntity("강사1");
+        instructorJpaRepository.save(instructorEntity);
+
+        LectureEntity lectureEntity = buildLectureEntity("강의1", instructorEntity);
+        lectureJpaRepository.save(lectureEntity);
+
+        LectureItemEntity lectureItemEntity = buildLectureItemEntity(lectureEntity, LocalDateTime.now().with(DayOfWeek.SATURDAY), 10L);
+        lectureItemJpaRepository.save(lectureItemEntity);
+
+        LectureItemInventoryEntity lectureItemInventoryEntity = buildLectureItemInventoryEntity(lectureItemEntity, 10L);
+        lectureItemInventoryJpaRepository.save(lectureItemInventoryEntity);
+
+        UserEntity userEntity = buildUserEntity("사용자1");
+        userJpaRepository.save(userEntity);
+
+        UserLectureEntity userLectureEntity = UserLectureEntity.builder()
+                .userEntity(userEntity)
+                .lectureItemEntity(lectureItemEntity)
+                .createdDateTime(LocalDateTime.now())
+                .build();
+        sut.save(userLectureEntity);
+
+        // when
+        boolean exists = sut.existsByUserIdAndLectureItemId(userEntity.getId(), lectureItemEntity.getId());
+
+        // then
+        assertThat(exists).isTrue();
+    }
+
     private InstructorEntity buildInstructorEntity(String name) {
         return InstructorEntity.instructorBuilder()
                 .name(name)

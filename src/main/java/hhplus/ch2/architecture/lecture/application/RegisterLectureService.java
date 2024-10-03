@@ -7,6 +7,7 @@ import hhplus.ch2.architecture.lecture.application.port.out.LectureItemRepositor
 import hhplus.ch2.architecture.lecture.application.port.out.UserLectureRepository;
 import hhplus.ch2.architecture.lecture.application.port.out.UserRepository;
 import hhplus.ch2.architecture.lecture.application.response.LectureRegistrationResult;
+import hhplus.ch2.architecture.lecture.common.exception.AlreadyRegisteredLectureException;
 import hhplus.ch2.architecture.lecture.common.exception.NoSuchLectureItemException;
 import hhplus.ch2.architecture.lecture.common.exception.NoSuchLectureItemInventoryException;
 import hhplus.ch2.architecture.lecture.common.exception.NoSuchUserException;
@@ -40,10 +41,9 @@ public class RegisterLectureService implements RegisterLectureUseCase {
         UserLecture userLecture = lectureItem.registerUser(lectureItemInventory.getLeftSeat(), user);
         lectureItemInventory = lectureItemInventoryRepository.decreaseLeftSeatById(lectureItemInventory);
 
-        // TODO: 2024-09-29 STEP 4 과제
-//        if (userLectureRepository.existsByUserAndLecture(user, lecture)) {
-//            throw new IllegalArgumentException("Already registered");
-//        }
+        if (userLectureRepository.existsByUserLecture(userLecture)) {
+            throw new AlreadyRegisteredLectureException(lectureItemId);
+        }
         userLectureRepository.save(userLecture);
         return new LectureRegistrationResult(lectureItemId, userId);
     }
