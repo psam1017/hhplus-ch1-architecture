@@ -1,13 +1,11 @@
 package hhplus.ch2.architecture.lecture.adapter.out.persistence.entity;
 
-import hhplus.ch2.architecture.lecture.domain.Lecture;
+import hhplus.ch2.architecture.lecture.domain.entity.Lecture;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -19,23 +17,23 @@ public class LectureEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String title;
-    private String instructorName;
-    private LocalDateTime lectureDateTime;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "instructor_id")
+    private InstructorEntity instructorEntity;
 
     @Builder
-    protected LectureEntity(Long id, String title, String instructorName, LocalDateTime lectureDateTime) {
+    protected LectureEntity(Long id, String title, InstructorEntity instructorEntity) {
         this.id = id;
         this.title = title;
-        this.instructorName = instructorName;
-        this.lectureDateTime = lectureDateTime;
+        this.instructorEntity = instructorEntity;
     }
 
     public Lecture toDomain() {
         return Lecture.builder()
                 .id(id)
                 .title(title)
-                .instructorName(instructorName)
-                .lectureDateTime(lectureDateTime)
+                .instructor(instructorEntity.toDomain())
                 .build();
     }
 
@@ -43,8 +41,7 @@ public class LectureEntity {
         return LectureEntity.builder()
                 .id(lecture.getId())
                 .title(lecture.getTitle())
-                .instructorName(lecture.getInstructorName())
-                .lectureDateTime(lecture.getLectureDateTime())
+                .instructorEntity(InstructorEntity.fromDomain(lecture.getInstructor()))
                 .build();
     }
 }

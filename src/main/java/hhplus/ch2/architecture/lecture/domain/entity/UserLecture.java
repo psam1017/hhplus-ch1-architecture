@@ -1,4 +1,4 @@
-package hhplus.ch2.architecture.lecture.domain;
+package hhplus.ch2.architecture.lecture.domain.entity;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -8,15 +8,14 @@ import java.time.LocalDateTime;
 @Getter
 public class UserLecture {
 
-    // TODO: 2024-10-01 ManyToOne ?
     private final User user;
-    private final Lecture lecture;
+    private final LectureItem lectureItem;
     private final LocalDateTime createdDateTime;
 
     @Builder
-    protected UserLecture(User user, Lecture lecture, LocalDateTime createdDateTime) {
+    protected UserLecture(User user, LectureItem lectureItem, LocalDateTime createdDateTime) {
         this.user = user;
-        this.lecture = lecture;
+        this.lectureItem = lectureItem;
         this.createdDateTime = createdDateTime;
     }
 }

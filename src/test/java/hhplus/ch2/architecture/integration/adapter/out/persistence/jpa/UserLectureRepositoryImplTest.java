@@ -1,32 +1,28 @@
-package hhplus.ch2.architecture.integration.application.port.in;
+package hhplus.ch2.architecture.integration.adapter.out.persistence.jpa;
 
-import hhplus.ch2.architecture.integration.application.SpringBootTestEnvironment;
 import hhplus.ch2.architecture.lecture.adapter.out.persistence.entity.*;
 import hhplus.ch2.architecture.lecture.adapter.out.persistence.jpa.*;
-import hhplus.ch2.architecture.lecture.application.RegisterLectureService;
-import hhplus.ch2.architecture.lecture.application.command.RegisterLectureCommand;
-import hhplus.ch2.architecture.lecture.application.response.LectureRegistrationResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class RegisterLectureUseCaseTest extends SpringBootTestEnvironment {
+public class UserLectureRepositoryImplTest extends DataJpaTestEnvironment {
 
     @Autowired
-    RegisterLectureService sut;
-
+    UserLectureJpaRepository sut;
+    
     @Autowired
     InstructorJpaRepository instructorJpaRepository;
 
     @Autowired
     LectureJpaRepository lectureJpaRepository;
-
+    
     @Autowired
     LectureItemJpaRepository lectureItemJpaRepository;
 
@@ -36,22 +32,17 @@ public class RegisterLectureUseCaseTest extends SpringBootTestEnvironment {
     @Autowired
     UserJpaRepository userJpaRepository;
 
-    @Autowired
-    UserLectureJpaRepository userLectureJpaRepository;
-
-    @DisplayName("사용자가 강의를 신청할 수 있다.")
+    @DisplayName("사용자를 강의 수강생으로 등록할 수 있다.")
     @Test
-    void registerLecture() {
+    void save() {
         // given
-        LocalDateTime thisSaturday = LocalDateTime.now().with(DayOfWeek.SATURDAY);
-
         InstructorEntity instructorEntity = buildInstructorEntity("강사1");
         instructorJpaRepository.save(instructorEntity);
 
         LectureEntity lectureEntity = buildLectureEntity("강의1", instructorEntity);
         lectureJpaRepository.save(lectureEntity);
 
-        LectureItemEntity lectureItemEntity = buildLectureItemEntity(lectureEntity, thisSaturday, 10L);
+        LectureItemEntity lectureItemEntity = buildLectureItemEntity(lectureEntity, LocalDateTime.now().with(DayOfWeek.SATURDAY), 10L);
         lectureItemJpaRepository.save(lectureItemEntity);
 
         LectureItemInventoryEntity lectureItemInventoryEntity = buildLectureItemInventoryEntity(lectureItemEntity, 10L);
@@ -60,21 +51,19 @@ public class RegisterLectureUseCaseTest extends SpringBootTestEnvironment {
         UserEntity userEntity = buildUserEntity("사용자1");
         userJpaRepository.save(userEntity);
 
-        RegisterLectureCommand command = new RegisterLectureCommand(userEntity.getId(), lectureItemEntity.getId());
+        UserLectureEntity userLectureEntity = UserLectureEntity.builder()
+                .userEntity(userEntity)
+                .lectureItemEntity(lectureItemEntity)
+                .createdDateTime(LocalDateTime.now())
+                .build();
 
         // when
-        LectureRegistrationResult result = sut.registerLecture(command);
+        UserLectureEntity saveUserLectureEntity = sut.save(userLectureEntity);
 
         // then
-        assertThat(result).isNotNull();
-        assertThat(result.lectureItemId()).isEqualTo(lectureItemEntity.getId());
-        assertThat(result.userId()).isEqualTo(userEntity.getId());
-
-        Optional<UserLectureEntity> optUserLectureEntity = userLectureJpaRepository.findById(buildUserLectureId(userEntity, lectureItemEntity));
-        assertThat(optUserLectureEntity).isPresent();
-        UserLectureEntity userLectureEntity = optUserLectureEntity.get();
-        assertThat(userLectureEntity.getUserEntity().getId()).isEqualTo(userEntity.getId());
-        assertThat(userLectureEntity.getLectureItemEntity().getId()).isEqualTo(lectureItemEntity.getId());
+        assertThat(saveUserLectureEntity).isNotNull();
+        assertThat(saveUserLectureEntity.getUserEntity().getId()).isEqualTo(userEntity.getId());
+        assertThat(saveUserLectureEntity.getLectureItemEntity().getId()).isEqualTo(lectureItemEntity.getId());
     }
 
     private InstructorEntity buildInstructorEntity(String name) {
@@ -108,13 +97,6 @@ public class RegisterLectureUseCaseTest extends SpringBootTestEnvironment {
     private UserEntity buildUserEntity(String name) {
         return UserEntity.builder()
                 .name(name)
-                .build();
-    }
-
-    private UserLectureEntityId buildUserLectureId(UserEntity userEntity, LectureItemEntity lectureItemEntity) {
-        return UserLectureEntityId.builder()
-                .userEntityId(userEntity.getId())
-                .lectureItemEntityId(lectureItemEntity.getId())
                 .build();
     }
 }

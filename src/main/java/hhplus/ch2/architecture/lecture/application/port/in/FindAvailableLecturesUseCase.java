@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface FindAvailableLecturesUseCase {
 
-    List<LectureResponse> findAvailableLectures(FindAvailableLectureCommand command);
+    List<LectureResponse> findAvailableLectureItems(FindAvailableLectureCommand command);
 }

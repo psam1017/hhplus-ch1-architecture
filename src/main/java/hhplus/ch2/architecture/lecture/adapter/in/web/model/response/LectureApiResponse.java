@@ -1,10 +1,10 @@
-package hhplus.ch2.architecture.lecture.application.response;
+package hhplus.ch2.architecture.lecture.adapter.in.web.model.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDateTime;
 
-public record LectureResponse(
+public record LectureApiResponse(
         Long lectureId,
         String lectureTitle,
         String instructorName,

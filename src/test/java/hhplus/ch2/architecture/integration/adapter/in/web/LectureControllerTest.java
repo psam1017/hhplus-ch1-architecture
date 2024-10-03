@@ -42,12 +42,12 @@ public class LectureControllerTest extends WebMvcTestEnvironment {
                 .thenReturn(new LectureRegistrationResult(1L, 1L));
 
         // given
-        Long lectureId = 1L;
+        Long lectureItemId = 1L;
         LectureRegistrationForm form = new LectureRegistrationForm(1L);
 
         // when
         ResultActions resultActions = mockMvc.perform(
-                post("/api/lectures/{lectureId}/register", lectureId)
+                post("/api/lectures/items/{lectureItemId}/register", lectureItemId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createJson(form))
         );
@@ -56,7 +56,7 @@ public class LectureControllerTest extends WebMvcTestEnvironment {
         resultActions.andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("200"))
                 .andExpect(jsonPath("$.data.userId").value(1L))
-                .andExpect(jsonPath("$.data.lectureId").value(1L));
+                .andExpect(jsonPath("$.data.lectureItemId").value(1L));
     }
 
     @DisplayName("수강할 수 있는 모든 강의를 찾을 수 있다.")
@@ -65,10 +65,10 @@ public class LectureControllerTest extends WebMvcTestEnvironment {
         // mock
         LocalDateTime thisSaturday = LocalDateTime.now().with(DayOfWeek.SATURDAY);
 
-        given(findAvailableLecturesUseCase.findAvailableLectures(any()))
+        given(findAvailableLecturesUseCase.findAvailableLectureItems(any()))
                 .willReturn(List.of(
-                        new LectureResponse(1L, "강의1", "강사1", thisSaturday, 0L),
-                        new LectureResponse(2L, "강의2", "강사2", thisSaturday.plusWeeks(1), 0L)
+                        new LectureResponse(1L, "강의1", "강사1", thisSaturday, 0L, 30L),
+                        new LectureResponse(2L, "강의2", "강사2", thisSaturday.plusWeeks(1), 0L, 30L)
                 ));
 
         // given
@@ -76,7 +76,7 @@ public class LectureControllerTest extends WebMvcTestEnvironment {
 
         // when
         ResultActions resultActions = mockMvc.perform(
-                get("/api/lectures")
+                get("/api/lectures/items")
         );
 
         // then
@@ -87,13 +87,13 @@ public class LectureControllerTest extends WebMvcTestEnvironment {
                 .andExpect(jsonPath("$.data[0].lectureTitle").value("강의1"))
                 .andExpect(jsonPath("$.data[0].instructorName").value("강사1"))
                 .andExpect(jsonPath("$.data[0].lectureDateTime").value(thisSaturday.format(formatter)))
-                .andExpect(jsonPath("$.data[0].registeredCount").value(0L))
+                .andExpect(jsonPath("$.data[0].leftSeat").value(0L))
                 .andExpect(jsonPath("$.data[0].capacity").value(30L))
                 .andExpect(jsonPath("$.data[1].lectureId").value(2L))
                 .andExpect(jsonPath("$.data[1].lectureTitle").value("강의2"))
                 .andExpect(jsonPath("$.data[1].instructorName").value("강사2"))
                 .andExpect(jsonPath("$.data[1].lectureDateTime").value(thisSaturday.plusWeeks(1).format(formatter)))
-                .andExpect(jsonPath("$.data[1].registeredCount").value(0L))
+                .andExpect(jsonPath("$.data[1].leftSeat").value(0L))
                 .andExpect(jsonPath("$.data[1].capacity").value(30L));
     }
 
@@ -105,7 +105,7 @@ public class LectureControllerTest extends WebMvcTestEnvironment {
 
         given(findMyLecturesUseCase.findMyLectures(any()))
                 .willReturn(List.of(
-                        new LectureResponse(1L, "강의1", "강사1", thisSaturday, 0L)
+                        new LectureResponse(1L, "강의1", "강사1", thisSaturday, 0L, 30L)
                 ));
 
         // given
@@ -124,7 +124,7 @@ public class LectureControllerTest extends WebMvcTestEnvironment {
                 .andExpect(jsonPath("$.data[0].lectureTitle").value("강의1"))
                 .andExpect(jsonPath("$.data[0].instructorName").value("강사1"))
                 .andExpect(jsonPath("$.data[0].lectureDateTime").value(thisSaturday.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))))
-                .andExpect(jsonPath("$.data[0].registeredCount").value(0L))
+                .andExpect(jsonPath("$.data[0].leftSeat").value(0L))
                 .andExpect(jsonPath("$.data[0].capacity").value(30L));
     }
 }

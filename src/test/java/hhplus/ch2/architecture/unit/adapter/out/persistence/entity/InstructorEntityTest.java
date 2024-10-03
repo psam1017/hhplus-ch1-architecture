@@ -1,38 +1,39 @@
 package hhplus.ch2.architecture.unit.adapter.out.persistence.entity;
 
 import hhplus.ch2.architecture.lecture.adapter.out.persistence.entity.UserEntity;
+import hhplus.ch2.architecture.lecture.domain.entity.Instructor;
 import hhplus.ch2.architecture.lecture.domain.entity.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class UserEntityTest {
+public class InstructorEntityTest {
 
-    @DisplayName("User 에서 UserEntity 로 변환할 수 있다.")
+    @DisplayName("Instructor 에서 InstructorEntity 로 변환할 수 있다.")
     @Test
-    void fromUser() {
+    void fromInstructor() {
         // given
-        User user = User.builder()
+        Instructor instructor = Instructor.instructorBuilder()
                 .id(1L)
-                .name("사용자1")
+                .name("강사1")
                 .build();
 
         // when
-        UserEntity entity = UserEntity.fromDomain(user);
+        UserEntity entity = UserEntity.fromDomain(instructor);
 
         // then
-        assertThat(entity.getId()).isEqualTo(user.getId());
-        assertThat(entity.getName()).isEqualTo(user.getName());
+        assertThat(entity.getId()).isEqualTo(instructor.getId());
+        assertThat(entity.getName()).isEqualTo(instructor.getName());
     }
 
-    @DisplayName("UserEntity 에서 User 로 변환할 수 있다.")
+    @DisplayName("InstructorEntity 에서 Instructor 로 변환할 수 있다.")
     @Test
-    void toUser() {
+    void toInstructor() {
         // given
         UserEntity entity = UserEntity.builder()
                 .id(1L)
-                .name("사용자1")
+                .name("강사1")
                 .build();
 
         // when

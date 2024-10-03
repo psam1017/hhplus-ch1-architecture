@@ -2,14 +2,15 @@ package hhplus.ch2.architecture.unit.application;
 
 import hhplus.ch2.architecture.lecture.application.RegisterLectureService;
 import hhplus.ch2.architecture.lecture.application.command.RegisterLectureCommand;
-import hhplus.ch2.architecture.lecture.application.port.out.LecturePort;
-import hhplus.ch2.architecture.lecture.application.port.out.UserLecturePort;
-import hhplus.ch2.architecture.lecture.application.port.out.UserPort;
-import hhplus.ch2.architecture.lecture.application.response.LectureRegistrationResult;
-import hhplus.ch2.architecture.lecture.common.exception.NoSuchLectureException;
+import hhplus.ch2.architecture.lecture.application.port.out.LectureItemInventoryRepository;
+import hhplus.ch2.architecture.lecture.application.port.out.LectureItemRepository;
+import hhplus.ch2.architecture.lecture.application.port.out.UserLectureRepository;
+import hhplus.ch2.architecture.lecture.application.port.out.UserRepository;
+import hhplus.ch2.architecture.lecture.common.exception.NoSuchLectureItemException;
+import hhplus.ch2.architecture.lecture.common.exception.NoSuchLectureItemInventoryException;
 import hhplus.ch2.architecture.lecture.common.exception.NoSuchUserException;
-import hhplus.ch2.architecture.lecture.domain.Lecture;
-import hhplus.ch2.architecture.lecture.domain.User;
+import hhplus.ch2.architecture.lecture.domain.entity.LectureItem;
+import hhplus.ch2.architecture.lecture.domain.entity.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,11 +18,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.DayOfWeek;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,38 +30,23 @@ public class RegisterLectureServiceTest {
     RegisterLectureService sut;
 
     @Mock
-    UserPort userPort;
+    UserRepository userRepository;
 
     @Mock
-    LecturePort lecturePort;
+    LectureItemRepository lectureItemRepository;
 
     @Mock
-    UserLecturePort userLecturePort;
+    LectureItemInventoryRepository lectureItemInventoryRepository;
 
-    @DisplayName("사용자가 강의를 신청할 수 있다.")
-    @Test
-    void registerLecture() {
-        // mock
-        when(userPort.findById(anyLong())).thenReturn(Optional.of(User.builder().build()));
-        when(lecturePort.findById(anyLong())).thenReturn(Optional.of(Lecture.builder()
-                .lectureDateTime(LocalDateTime.now().with(DayOfWeek.SATURDAY))
-                .build()));
-        when(userLecturePort.countByLecture(any())).thenReturn(0L);
-
-        // given
-        RegisterLectureCommand command = new RegisterLectureCommand(1L, 1L);
-
-        // when
-        LectureRegistrationResult result = sut.registerLecture(command);
-
-        // then
-        assertThat(result.lectureId()).isEqualTo(1L);
-        assertThat(result.userId()).isEqualTo(1L);
-    }
+    @Mock
+    UserLectureRepository userLectureRepository;
 
     @DisplayName("등록되지 않은 사용자는 강의를 신청할 수 없다.")
     @Test
     void registerLectureWithNotRegisteredUser() {
+        // mock
+        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+
         // given
         RegisterLectureCommand command = new RegisterLectureCommand(1L, 1L);
 
@@ -77,8 +61,8 @@ public class RegisterLectureServiceTest {
     @Test
     void registerLectureWithNotRegisteredLecture() {
         // mock
-        when(userPort.findById(anyLong())).thenReturn(Optional.of(User.builder().build()));
-        when(lecturePort.findById(anyLong())).thenReturn(Optional.empty());
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(User.builder().build()));
+        when(lectureItemRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         // given
         RegisterLectureCommand command = new RegisterLectureCommand(1L, 1L);
@@ -86,7 +70,26 @@ public class RegisterLectureServiceTest {
         // when
         // then
         assertThatThrownBy(() -> sut.registerLecture(command))
-                .isInstanceOf(NoSuchLectureException.class)
-                .hasMessage("No such lecture: 1");
+                .isInstanceOf(NoSuchLectureItemException.class)
+                .hasMessage("No such lecture item: 1");
+    }
+
+    @DisplayName("강의의 대기인원 정보를 찾지 못 하면 예외가 발생한다.")
+    @Test
+    void registerLectureWithNotRegisteredLectureItemInventory() {
+        // mock
+        User user = User.builder().build();
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(lectureItemRepository.findById(anyLong())).thenReturn(Optional.of(LectureItem.builder().build()));
+        when(lectureItemInventoryRepository.findByLectureItem(any())).thenReturn(Optional.empty());
+
+        // given
+        RegisterLectureCommand command = new RegisterLectureCommand(1L, 1L);
+
+        // when
+        // then
+        assertThatThrownBy(() -> sut.registerLecture(command))
+                .isInstanceOf(NoSuchLectureItemInventoryException.class)
+                .hasMessage("No such lecture item inventory: 1");
     }
 }

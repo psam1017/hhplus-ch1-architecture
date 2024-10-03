@@ -1,8 +1,6 @@
 package hhplus.ch2.architecture.lecture.adapter.out.persistence.entity;
 
-import hhplus.ch2.architecture.lecture.domain.Lecture;
-import hhplus.ch2.architecture.lecture.domain.User;
-import hhplus.ch2.architecture.lecture.domain.UserLecture;
+import hhplus.ch2.architecture.lecture.domain.entity.UserLecture;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -13,7 +11,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@IdClass(UserLectureId.class)
+@IdClass(UserLectureEntityId.class)
 @Table(name = "user_lectures")
 @Entity
 public class UserLectureEntity {
@@ -21,34 +19,34 @@ public class UserLectureEntity {
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private UserEntity user;
+    private UserEntity userEntity;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lecture_id")
-    private LectureEntity lecture;
+    private LectureItemEntity lectureItemEntity;
 
     private LocalDateTime createdDateTime;
 
     @Builder
-    protected UserLectureEntity(UserEntity user, LectureEntity lecture, LocalDateTime createdDateTime) {
-        this.user = user;
-        this.lecture = lecture;
+    protected UserLectureEntity(UserEntity userEntity, LectureItemEntity lectureItemEntity, LocalDateTime createdDateTime) {
+        this.userEntity = userEntity;
+        this.lectureItemEntity = lectureItemEntity;
         this.createdDateTime = createdDateTime;
     }
 
     public static UserLectureEntity fromDomain(UserLecture userLecture) {
         return UserLectureEntity.builder()
-                .user(UserEntity.fromDomain(userLecture.getUser()))
-                .lecture(LectureEntity.fromDomain(userLecture.getLecture()))
+                .userEntity(UserEntity.fromDomain(userLecture.getUser()))
+                .lectureItemEntity(LectureItemEntity.fromDomain(userLecture.getLectureItem()))
                 .createdDateTime(userLecture.getCreatedDateTime())
                 .build();
     }
 
     public UserLecture toDomain() {
         return UserLecture.builder()
-                .user(user.toDomain())
-                .lecture(lecture.toDomain())
+                .user(userEntity.toDomain())
+                .lectureItem(lectureItemEntity.toDomain())
                 .createdDateTime(createdDateTime)
                 .build();
     }
