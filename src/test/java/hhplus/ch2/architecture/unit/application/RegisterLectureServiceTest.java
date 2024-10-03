@@ -6,10 +6,12 @@ import hhplus.ch2.architecture.lecture.application.port.out.LectureItemInventory
 import hhplus.ch2.architecture.lecture.application.port.out.LectureItemRepository;
 import hhplus.ch2.architecture.lecture.application.port.out.UserLectureRepository;
 import hhplus.ch2.architecture.lecture.application.port.out.UserRepository;
+import hhplus.ch2.architecture.lecture.common.exception.AlreadyRegisteredLectureException;
 import hhplus.ch2.architecture.lecture.common.exception.NoSuchLectureItemException;
 import hhplus.ch2.architecture.lecture.common.exception.NoSuchLectureItemInventoryException;
 import hhplus.ch2.architecture.lecture.common.exception.NoSuchUserException;
 import hhplus.ch2.architecture.lecture.domain.entity.LectureItem;
+import hhplus.ch2.architecture.lecture.domain.entity.LectureItemInventory;
 import hhplus.ch2.architecture.lecture.domain.entity.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -91,5 +93,28 @@ public class RegisterLectureServiceTest {
         assertThatThrownBy(() -> sut.registerLecture(command))
                 .isInstanceOf(NoSuchLectureItemInventoryException.class)
                 .hasMessage("No such lecture item inventory: 1");
+    }
+
+    @DisplayName("사용자는 이미 신청한 강의를 다시 신청할 수 없다.")
+    @Test
+    void registerLectureWithAlreadyRegisteredLecture() {
+        // mock
+        User user = User.builder().build();
+        LectureItem lectureItem = LectureItem.builder().build();
+        LectureItemInventory lectureItemInventory = LectureItemInventory.builder().leftSeat(1L).build();
+
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(lectureItemRepository.findById(anyLong())).thenReturn(Optional.of(lectureItem));
+        when(lectureItemInventoryRepository.findByLectureItem(any())).thenReturn(Optional.of(lectureItemInventory));
+        when(userLectureRepository.existsByUserLecture(any())).thenReturn(true);
+
+        // given
+        RegisterLectureCommand command = new RegisterLectureCommand(1L, 1L);
+
+        // when
+        // then
+        assertThatThrownBy(() -> sut.registerLecture(command))
+                .isInstanceOf(AlreadyRegisteredLectureException.class)
+                .hasMessage("Lecture item %d is already registered".formatted(1L));
     }
 }
